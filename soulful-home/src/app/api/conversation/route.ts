@@ -57,17 +57,20 @@ export async function POST(request: Request) {
       aiResponse: completion.choices[0].message.content
     };
 
-    // Read existing conversations if file exists
+    // 检查是否是第一个问题（通过判断问题内容）
+    const isFirstQuestion = currentQuestion === "If anything were possible, what would your dream home look like?";
+    
     let conversations = [];
-    if (fs.existsSync(conversationPath)) {
+    if (!isFirstQuestion && fs.existsSync(conversationPath)) {
+      // 如果不是第一个问题，读取现有对话
       const fileContent = fs.readFileSync(conversationPath, 'utf-8');
       conversations = JSON.parse(fileContent);
     }
 
-    // Add new conversation data
+    // 添加新的对话数据
     conversations.push(conversationData);
 
-    // Save updated conversations
+    // 保存更新后的对话
     fs.writeFileSync(conversationPath, JSON.stringify(conversations, null, 2));
 
     return NextResponse.json({
