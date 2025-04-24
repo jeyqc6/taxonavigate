@@ -62,22 +62,18 @@ export default function Results() {
   useEffect(() => {
     const fetchReportData = async () => {
       try {
-        const response = await fetch('/api/generate-report', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
+        setLoading(true);
+        // 直接从根路径读取数据
+        const response = await fetch('/report_results.json');
         if (!response.ok) {
-          throw new Error('Failed to fetch report data');
+          throw new Error('Report not found');
         }
-
         const data = await response.json();
         setReportData(data);
+        setLoading(false);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
+        console.error('Error loading report:', err);
+        setError('No report data available. Please complete the conversation first.');
         setLoading(false);
       }
     };
@@ -103,8 +99,14 @@ export default function Results() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-red-500">Error: {error}</div>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <div className="text-xl text-red-500">{error}</div>
+        <button
+          onClick={() => window.location.href = '/conversation'}
+          className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+        >
+          Start Conversation
+        </button>
       </div>
     );
   }
@@ -137,7 +139,7 @@ export default function Results() {
           </div>
 
           {/* Image Recommendations */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {searchResults.inspirations.map((image, index) => (
               <motion.div
                 key={index}
@@ -153,22 +155,9 @@ export default function Results() {
                   />
                 </div>
                 <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <p className="text-gray-700 text-sm">
                     {image.description}
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-2">
-                    Relevance Score: {image.relevance_score.toFixed(2)}
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    {image.matching_aspects.map((aspect, i) => (
-                      <span
-                        key={i}
-                        className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
-                      >
-                        {aspect}
-                      </span>
-                    ))}
-                  </div>
                 </div>
               </motion.div>
             ))}
@@ -322,14 +311,14 @@ export default function Results() {
                 }
               }}
               exit={{ scale: 0.8, opacity: 0 }}
-              className="max-w-2xl mx-auto p-8 bg-gray-900 rounded-2xl shadow-2xl relative overflow-hidden"
+              className="max-w-2xl mx-auto p-8 bg-gray-900 rounded-2xl shadow-2xl relative overflow-hidden z-[60]"
             >
               {/* Crack Effect */}
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.3 }}
-                className="absolute inset-0"
+                className="absolute inset-0 z-[61]"
                 style={{
                   backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 0 L100 0 L100 100 L0 100 Z\' fill=\'none\' stroke=\'%23ff0000\' stroke-width=\'2\' stroke-dasharray=\'5,5\'/%3E%3C/svg%3E")',
                   opacity: 0.1
@@ -403,10 +392,9 @@ export default function Results() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
-                  setShowDarkReport(false);
-                  setShowAdPopup(false);
+                  window.location.href = '/results';
                 }}
-                className="mt-6 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                className="mt-6 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors relative z-[65]"
               >
                 Close Report
               </motion.button>

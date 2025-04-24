@@ -198,8 +198,11 @@ export default function VisualSelection() {
       }
     }
 
-    // Move to next question
-    if (currentQuestionIndex < questions.length - 1) {
+    // If it's the last question, navigate to conversation page
+    if (currentQuestionIndex === questions.length - 1) {
+      window.location.href = '/conversation';
+    } else {
+      // Move to next question
       setCurrentQuestionIndex(prev => prev + 1);
     }
   };

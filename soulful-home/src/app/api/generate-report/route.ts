@@ -47,19 +47,17 @@ export async function POST(request: Request) {
     const searchResults = await performSemanticSearch(userReports);
     console.log('Semantic search completed');
 
-    // Save the results
+    // Save the report data
+    const reportData = {
+      userReports,
+      searchResults
+    };
+
     const resultsPath = path.join(process.cwd(), 'public', 'report_results.json');
     console.log('Saving results to:', resultsPath);
-    fs.writeFileSync(resultsPath, JSON.stringify({
-      userReports,
-      searchResults
-    }, null, 2));
+    fs.writeFileSync(resultsPath, JSON.stringify(reportData, null, 2));
 
-    return NextResponse.json({
-      success: true,
-      userReports,
-      searchResults
-    });
+    return NextResponse.json(reportData);
   } catch (error) {
     console.error('Error in generate-report API:', error);
     return NextResponse.json(

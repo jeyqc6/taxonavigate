@@ -23,6 +23,7 @@ export default function Conversation() {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [sessionId, setSessionId] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -32,6 +33,12 @@ export default function Conversation() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Generate session ID when component mounts
+  useEffect(() => {
+    const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    setSessionId(newSessionId);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +61,9 @@ export default function Conversation() {
         },
         body: JSON.stringify({
           messages: [...messages, userMessage],
-          currentQuestion: questions[currentQuestionIndex]
+          currentQuestion: questions[currentQuestionIndex],
+          sessionId,
+          isFirstQuestion: currentQuestionIndex === 0 // 标记是否是第一个问题
         }),
       });
 
@@ -73,12 +82,25 @@ export default function Conversation() {
       // Move to next question
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
-        // Add next question as assistant message
         const nextQuestionMessage: Message = {
           role: 'assistant',
           content: questions[currentQuestionIndex + 1]
         };
         setMessages(prev => [...prev, nextQuestionMessage]);
+      }
+
+      // Check if all questions have been answered
+      const questionsAnswered = messages.filter(m => m.role === 'user').length + 1;
+      if (questionsAnswered >= questions.length) {
+        setTimeout(() => {
+          setMessages(prev => [
+            ...prev,
+            {
+              role: 'assistant',
+              content: "Thank you for sharing your preferences! Click the button below to generate your personalized Home Report and discover inspiring spaces that match your style."
+            }
+          ]);
+        }, 1000);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -190,40 +212,46 @@ export default function Conversation() {
 
             {/* Report Button - Always visible */}
             <div className="p-4 border-t border-gray-200">
-              <Link href="/results">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={async (e) => {
-                    e.preventDefault(); // Prevent immediate navigation
-                    try {
-                      const response = await fetch('/api/generate-report', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          messages,
-                          selections: {} // Add any selections if needed
-                        }),
-                      });
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={async () => {
+                  try {
+                    // 显示加载状态
+                    const loadingToast = document.createElement('div');
+                    loadingToast.className = 'fixed top-4 right-4 bg-indigo-600 text-white px-6 py-3 rounded-lg shadow-lg';
+                    loadingToast.textContent = 'Generating your report...';
+                    document.body.appendChild(loadingToast);
 
-                      if (!response.ok) {
-                        throw new Error('Failed to generate report');
-                      }
+                    const response = await fetch('/api/generate-report', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        messages,
+                        selections: {}
+                      }),
+                    });
 
-                      // Only navigate after successful report generation
-                      window.location.href = '/results';
-                    } catch (error) {
-                      console.error('Error generating report:', error);
-                      alert('Failed to generate report. Please try again.');
+                    if (!response.ok) {
+                      throw new Error('Failed to generate report');
                     }
-                  }}
-                  className="w-full py-3 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-                >
-                  Get Your Soulful Home Report
-                </motion.button>
-              </Link>
+
+                    // 移除加载提示
+                    document.body.removeChild(loadingToast);
+
+                    // 导航到结果页面
+                    window.location.href = '/results';
+                  } catch (error) {
+                    console.error('Error generating report:', error);
+                    alert('Failed to generate report. Please try again.');
+                  }
+                }}
+                className="w-full py-3 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+              >
+                Get Your Soulful Home Report
+              </motion.button>
             </div>
           </motion.div>
         </div>
