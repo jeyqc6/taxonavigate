@@ -47,6 +47,12 @@ interface ReportData {
       relevance_score: number;
       matching_aspects: string[];
     }[];
+    least_matches: {
+      image_path: string;
+      description: string;
+      relevance_score: number;
+      matching_aspects: string[];
+    }[];
   };
 }
 
@@ -58,6 +64,7 @@ export default function Results() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAdPopup, setShowAdPopup] = useState(false);
+  const [showInspirations, setShowInspirations] = useState(true);
 
   useEffect(() => {
     const fetchReportData = async () => {
@@ -138,13 +145,35 @@ export default function Results() {
             </p>
           </div>
 
+          {/* Toggle Button */}
+          <div className="flex justify-center mb-8">
+            <div className="bg-white rounded-full p-1 shadow-lg">
+              <button
+                onClick={() => setShowInspirations(true)}
+                className={`px-6 py-2 rounded-full transition-colors ${
+                  showInspirations ? 'bg-indigo-600 text-white' : 'text-gray-600'
+                }`}
+              >
+                Most Matches
+              </button>
+              <button
+                onClick={() => setShowInspirations(false)}
+                className={`px-6 py-2 rounded-full transition-colors ${
+                  !showInspirations ? 'bg-indigo-600 text-white' : 'text-gray-600'
+                }`}
+              >
+                Least Matches
+              </button>
+            </div>
+          </div>
+
           {/* Image Recommendations */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {searchResults.inspirations.map((image, index) => (
+            {(showInspirations ? searchResults.inspirations : searchResults.least_matches).map((image, index) => (
               <motion.div
                 key={index}
                 whileHover={{ scale: 1.02 }}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden"
+                className="bg-white rounded-2xl shadow-lg overflow-hidden relative"
               >
                 <div className="relative h-64">
                   <Image
@@ -153,6 +182,11 @@ export default function Results() {
                     fill
                     className="object-cover"
                   />
+                  <div className="absolute top-2 right-2 bg-black/70 px-3 py-1 rounded-full">
+                    <span className="text-white text-sm font-medium">
+                      {Math.round(image.relevance_score * 100)}% Match
+                    </span>
+                  </div>
                 </div>
                 <div className="p-6">
                   <p className="text-gray-700 text-sm">
@@ -201,6 +235,22 @@ export default function Results() {
                   {userReports.style_tags.room_typology}
                 </p>
               </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Emotional Imagery
+                </h3>
+                <p className="text-gray-600">
+                  {userReports.style_tags.emotional_imagery}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Persona Cues
+                </h3>
+                <p className="text-gray-600">
+                  {userReports.style_tags.persona_cues}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -224,6 +274,7 @@ export default function Results() {
               <span>View Consumer Analysis</span>
             </motion.button>
           </div>
+          <div className="my-16"></div>
         </motion.div>
       </div>
 
@@ -361,10 +412,10 @@ export default function Results() {
                 <div>
                   <span className="text-gray-500">Emotional Tone:</span>
                   <p className="text-red-300">
-                    {(userReports.internal_report.emotional_tone.nostalgic * 100).toFixed(0)}% Nostalgic,{' '}
-                    {(userReports.internal_report.emotional_tone.anti_trend * 100).toFixed(0)}% Anti-Trend,{' '}
-                    {(userReports.internal_report.emotional_tone.calm * 100).toFixed(0)}% Calm,{' '}
-                    {(userReports.internal_report.emotional_tone.inspired * 100).toFixed(0)}% Inspired
+                    {(userReports.internal_report.emotional_tone.nostalgic)}% Nostalgic,{' '}
+                    {(userReports.internal_report.emotional_tone.anti_trend)}% Anti-Trend,{' '}
+                    {(userReports.internal_report.emotional_tone.calm )}% Calm,{' '}
+                    {(userReports.internal_report.emotional_tone.inspired)}% Inspired
                   </p>
                 </div>
                 <div>

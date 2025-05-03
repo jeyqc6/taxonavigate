@@ -79,6 +79,7 @@ def main():
     
     # Get top 6 matches
     top_matches = similarities[:6]
+    bottom_matches = similarities[-6:]
     
     # Read image descriptions
     with open(os.path.join(SCRIPT_DIR, "image_descriptions.json"), "r") as f:
@@ -97,7 +98,17 @@ def main():
                 "matching_aspects": user_preferences
             }
             for match in top_matches
+        ],
+        "least_matches": [
+            {
+            "image_path": f"/house-image/{match[0]}",
+            "description": description_dict.get(match[0], "No description available"),
+            "relevance_score": float(match[1]),
+            "matching_aspects": user_preferences
+        }
+        for match in bottom_matches
         ]
+        
     }
     
     # Output results
