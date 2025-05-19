@@ -217,7 +217,7 @@ export default function Conversation() {
                 whileTap={{ scale: 0.98 }}
                 onClick={async () => {
                   try {
-                    // 显示加载状态
+                    // show loading toast
                     const loadingToast = document.createElement('div');
                     loadingToast.className = 'fixed top-4 right-4 bg-indigo-600 text-white px-6 py-3 rounded-lg shadow-lg';
                     loadingToast.textContent = 'Generating your report...';
@@ -238,10 +238,10 @@ export default function Conversation() {
                       throw new Error('Failed to generate report');
                     }
 
-                    // 移除加载提示
+                    // remove loading toast
                     document.body.removeChild(loadingToast);
 
-                    // 导航到结果页面
+                    // navigate to results page
                     window.location.href = '/results';
                   } catch (error) {
                     console.error('Error generating report:', error);

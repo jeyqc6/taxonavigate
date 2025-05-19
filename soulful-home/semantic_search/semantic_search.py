@@ -13,20 +13,20 @@ import os
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = os.path.join(SCRIPT_DIR, "..", "public")
 
-# === 初始化模型 ===
+# initialize the CLIP model and processor
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-# === 加载 embedding 文件 ===
+# load the image descriptions and embeddings
 with open(os.path.join(PUBLIC_DIR, "image_text_embeddings.json"), "r") as f:
     image_data = json.load(f)
 
-# === 提取 embedding 矩阵和图片名 ===
+# combine fields into a single text string
 image_embeddings = np.array([entry["embedding"] for entry in image_data])
 filenames = [entry["filename"] for entry in image_data]
 
-# === 计算查询文本的 embedding ===
+# function to compute text embeddings
 def compute_text_embedding(query: str) -> np.ndarray:
     if not isinstance(query, str):
         query = str(query)

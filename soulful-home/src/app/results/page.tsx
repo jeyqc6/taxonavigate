@@ -70,7 +70,7 @@ export default function Results() {
     const fetchReportData = async () => {
       try {
         setLoading(true);
-        // 直接从根路径读取数据
+        // read data from the JSON file
         const response = await fetch('/report_results.json');
         if (!response.ok) {
           throw new Error('Report not found');

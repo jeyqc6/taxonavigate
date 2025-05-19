@@ -4,16 +4,16 @@ import numpy as np
 from transformers import CLIPProcessor, CLIPModel
 from typing import List, Dict
 
-# === 初始化模型 ===
+# initialize the CLIP model and processor
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-# === 加载 JSON 文件 ===
+# load the image descriptions
 with open("image_descriptions.json", "r") as f:
     image_data = json.load(f)
 
-# === 拼接文本字段 ===
+# combine fields into a single text string
 def combine_fields(entry: Dict) -> str:
     return (
         f"{entry.get('description', '')}. "
@@ -27,7 +27,7 @@ def combine_fields(entry: Dict) -> str:
 
 texts = [combine_fields(entry) for entry in image_data]
 
-# === 计算文本嵌入 ===
+# calculate text embeddings
 def compute_text_embeddings(texts: List[str]) -> np.ndarray:
     inputs = processor(text=texts, return_tensors="pt", padding=True, truncation=True).to(device)
     with torch.no_grad():
@@ -37,12 +37,12 @@ def compute_text_embeddings(texts: List[str]) -> np.ndarray:
 
 embeddings = compute_text_embeddings(texts)
 
-# === 写入输出文件 ===
+# write the embeddings to a JSON file
 output = []
 for i, entry in enumerate(image_data):
     output.append({
         "filename": entry["filename"],
-        "embedding_input": texts[i],  # 可用于调试和可视化
+        "embedding_input": texts[i], 
         "embedding": embeddings[i].tolist()
     })
 
